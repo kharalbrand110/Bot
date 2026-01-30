@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# Environment variables
+.env
+.env.local
+
+# WhatsApp session data
+.wwebjs_auth/
+.wwebjs_cache/
+
+# Downloaded files
+downloads/
+*.mp4
+*.mp3
+
+# QR Code
+qrcode.png
+
+# Database
+*.db
+*.sqlite
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/

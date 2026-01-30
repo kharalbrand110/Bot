@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - WhatsApp Downloader Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar {
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar text-white w-64">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold mb-8">
+                    <i class="fab fa-whatsapp mr-2"></i>Admin Panel
+                </h1>
+                <nav class="space-y-2">
+                    <a href="#dashboard" onclick="showSection('dashboard')" 
+                       class="block p-3 rounded-lg hover:bg-white/10 transition duration-200">
+                       <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                    </a>
+                    <a href="#users" onclick="showSection('users')" 
+                       class="block p-3 rounded-lg hover:bg-white/10 transition duration-200">
+                       <i class="fas fa-users mr-3"></i>Users
+                    </a>
+                    <a href="#downloads" onclick="showSection('downloads')" 
+                       class="block p-3 rounded-lg hover:bg-white/10 transition duration-200">
+                       <i class="fas fa-download mr-3"></i>Downloads
+                    </a>
+                    <a href="#settings" onclick="showSection('settings')" 
+                       class="block p-3 rounded-lg hover:bg-white/10 transition duration-200">
+                       <i class="fas fa-cog mr-3"></i>Settings
+                    </a>
+                    <a href="/" target="_blank" 
+                       class="block p-3 rounded-lg hover:bg-white/10 transition duration-200">
+                       <i class="fas fa-external-link-alt mr-3"></i>Website
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <header class="bg-white shadow p-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-800" id="sectionTitle">Dashboard</h2>
+                    <div class="flex items-center space-x-4">
+                        <span id="onlineStatus" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                            <i class="fas fa-circle text-green-500 mr-1"></i> Online
+                        </span>
+                        <button onclick="refreshAll()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                            <i class="fas fa-sync-alt mr-2"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="p-6">
+                <!-- Dashboard Section -->
+                <section id="dashboard" class="space-y-6">
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500 text-sm">Total Users</p>
+                                    <h3 class="text-3xl font-bold text-gray-800" id="totalUsers">0</h3>
+                                </div>
+                                <div class="bg-blue-100 p-3 rounded-full">
+                                    <i class="fas fa-users text-blue-500 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500 text-sm">Total Downloads</p>
+                                    <h3 class="text-3xl font-bold text-gray-800" id="totalDownloads">0</h3>
+                                </div>
+                                <div class="bg-green-100 p-3 rounded-full">
+                                    <i class="fas fa-download text-green-500 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500 text-sm">Today's Downloads</p>
+                                    <h3 class="text-3xl font-bold text-gray-800" id="todayDownloads">0</h3>
+                                </div>
+                                <div class="bg-yellow-100 p-3 rounded-full">
+                                    <i class="fas fa-calendar-day text-yellow-500 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500 text-sm">Active Sessions</p>
+                                    <h3 class="text-3xl font-bold text-gray-800" id="activeSessions">0</h3>
+                                </div>
+                                <div class="bg-purple-100 p-3 rounded-full">
+                                    <i class="fas fa-bolt text-purple-500 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Download Statistics</h3>
+                            <canvas id="downloadChart" height="250"></canvas>
+                        </div>
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Platform Usage</h3>
+                            <canvas id="platformChart" height="250"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Recent Activity</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3">Time</th>
+                                        <th class="px-4 py-3">User</th>
+                                        <th class="px-4 py-3">Platform</th>
+                                        <th class="px-4 py-3">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentActivity">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Users Section -->
+                <section id="users" class="hidden">
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Paired Users</h3>
+                            <div class="flex space-x-2">
+                                <input type="text" 
+                                       id="searchUsers" 
+                                       placeholder="Search users..." 
+                                       class="border rounded-lg px-4 py-2 w-64">
+                                <button onclick="exportUsers()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                                    <i class="fas fa-download mr-2"></i>Export
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3">Phone Number</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3">Paired Date</th>
+                                        <th class="px-4 py-3">Downloads</th>
+                                        <th class="px-4 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTable">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 flex justify-between items-center">
+                            <div id="usersPagination" class="flex space-x-2">
+                                <!-- Pagination will be added here -->
+                            </div>
+                            <div class="text-gray-500 text-sm">
+                                Showing <span id="usersCount">0</span> users
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Downloads Section -->
+                <section id="downloads" class="hidden">
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Download History</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3">Date</th>
+                                        <th class="px-4 py-3">User</th>
+                                        <th class="px-4 py-3">Platform</th>
+                                        <th class="px-4 py-3">URL</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3">File Size</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="downloadsTable">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Settings Section -->
+                <section id="settings" class="hidden">
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Bot Settings</h3>
+                        
+                        <div class="space-y-6">
+                            <!-- WhatsApp Connection -->
+                            <div class="border rounded-lg p-6">
+                                <h4 class="text-lg font-bold text-gray-800 mb-4">
+                                    <i class="fab fa-whatsapp text-green-500 mr-2"></i>WhatsApp Connection
+                                </h4>
+                                <div id="qrCodeContainer" class="text-center mb-4">
+                                    <!-- QR Code will be displayed here -->
+                                </div>
+                                <div class="flex space-x-4">
+                                    <button onclick="generateNewQR()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                                        Generate New QR
+                                    </button>
+                                    <button onclick="logoutWhatsApp()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
+                                        Logout WhatsApp
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Download Settings -->
+                            <div class="border rounded-lg p-6">
+                                <h4 class="text-lg font-bold text-gray-800 mb-4">
+                                    <i class="fas fa-download text-blue-500 mr-2"></i>Download Settings
+                                </h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">Max File Size (MB)</label>
+                                        <input type="number" 
+                                               id="maxFileSize" 
+                                               value="100" 
+                                               class="border rounded-lg px-4 py-2 w-full">
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">Max Downloads per User (per day)</label>
+                                        <input type="number" 
+                                               id="maxDownloads" 
+                                               value="50" 
+                                               class="border rounded-lg px-4 py-2 w-full">
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="enableYouTube" checked class="mr-2">
+                                        <label for="enableYouTube" class="text-gray-700">Enable YouTube Downloads</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="enableInstagram" checked class="mr-2">
+                                        <label for="enableInstagram" class="text-gray-700">Enable Instagram Downloads</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Save Settings -->
+                            <div class="text-right">
+                                <button onclick="saveSettings()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-bold">
+                                    <i class="fas fa-save mr-2"></i>Save Settings
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let downloadChart = null;
+        let platformChart = null;
+        let currentSection = 'dashboard';
+
+        // Show section
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show selected section
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.classList.remove('hidden');
+                currentSection = sectionId;
+                
+                // Update title
+                const titles = {
+                    'dashboard': 'Dashboard',
+                    'users': 'User Management',
+                    'downloads': 'Download History',
+                    'settings': 'Settings'
+                };
+                document.getElementById('sectionTitle').textContent = titles[sectionId] || 'Admin Panel';
+                
+                // Load section data
+                loadSectionData(sectionId);
+            }
+        }
+
+        // Load section data
+        async function loadSectionData(sectionId) {
+            switch(sectionId) {
+                case 'dashboard':
+                    await loadDashboard();
+                    break;
+                case 'users':
+                    await loadUsers();
+                    break;
+                case 'downloads':
+                    await loadDownloads();
+                    break;
+                case 'settings':
+                    await loadSettings();
+                    break;
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                // Load stats
+                const statsResponse = await fetch('/api/stats');
+                const stats = await statsResponse.json();
+                
+                if (stats) {
+                    document.getElementById('totalUsers').textContent = stats.total_users || 0;
+                    document.getElementById('totalDownloads').textContent = stats.total_downloads || 0;
+                    document.getElementById('todayDownloads').textContent = stats.today_downloads || 0;
+                    document.getElementById('activeSessions').textContent = stats.total_users || 0; // Approximation
+                }
+                
+                // Load recent activity
+                await loadRecentActivity();
+                
+                // Initialize charts
+                initCharts();
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // Load recent activity
+        async function loadRecentActivity() {
+            try {
+                const response = await fetch('/api/admin/users?limit=10');
+                const users = await response.json();
+                
+                const tbody = document.getElementById('recentActivity');
+                if (tbody) {
+                    tbody.innerHTML = users.map(user => `
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-4 py-3">${new Date(user.created_at).toLocaleString()}</td>
+                            <td class="px-4 py-3">${user.phone}</td>
+                            <td class="px-4 py-3">WhatsApp</td>
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 rounded-full text-xs ${user.status === 'paired' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                    ${user.status}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading activity:', error);
+            }
+        }
+
+        // Initialize charts
+        function initCharts() {
+            // Destroy existing charts
+            if (downloadChart) downloadChart.destroy();
+            if (platformChart) platformChart.destroy();
+            
+            // Download Chart
+            const downloadCtx = document.getElementById('downloadChart');
+            if (downloadCtx) {
+                downloadChart = new Chart(downloadCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Downloads',
+                            data: [12, 19, 8, 15, 12, 17, 10],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+            
+            // Platform Chart
+            const platformCtx = document.getElementById('platformChart');
+            if (platformCtx) {
+                platformChart = new Chart(platformCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['YouTube', 'Instagram', 'Facebook', 'TikTok', 'Twitter'],
+                        datasets: [{
+                            data: [65, 15, 10, 5, 5],
+                            backgroundColor: [
+                                '#FF0000', // YouTube Red
+                                '#E1306C', // Instagram Pink
+                                '#1877F2', // Facebook Blue
+                                '#000000', // TikTok Black
+                                '#1DA1F2'  // Twitter Blue
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/admin/users');
+                const users = await response.json();
+                
+                const tbody = document.getElementById('usersTable');
+                if (tbody && users) {
+                    tbody.innerHTML = users.map(user => `
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-4 py-3 font-medium text-gray-900">${user.phone}</td>
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 rounded-full text-xs ${user.status === 'paired' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                    ${user.status}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">${user.paired_at ? new Date(user.paired_at).toLocaleDateString() : 'Not paired'}</td>
+                            <td class="px-4 py-3">0</td>
+                            <td class="px-4 py-3">
+                                <button onclick="viewUser('${user.phone}')" class="text-blue-500 hover:text-blue-700 mr-2">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="deleteUser('${user.phone}')" class="text-red-500 hover:text-red-700">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                    
+                    document.getElementById('usersCount').textContent = users.length;
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        // Load downloads
+        async function loadDownloads() {
+            // This would load from /api/admin/downloads
+            // For now, show placeholder
+            const tbody = document.getElementById('downloadsTable');
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                            <i class="fas fa-download text-4xl mb-4 text-gray-300"></i>
+                            <p>Download history will appear here</p>
+                            <p class="text-sm mt-2">API endpoint: /api/admin/downloads</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Load settings
+        async function loadSettings() {
+            try {
+                // Load QR code
+                const qrResponse = await fetch('/api/qrcode');
+                const qrData = await qrResponse.json();
+                
+                const qrContainer = document.getElementById('qrCodeContainer');
+                if (qrContainer && qrData.success && qrData.qrcode) {
+                    qrContainer.innerHTML = `
+                        <p class="text-sm text-gray-500 mb-2">Scan this QR code with WhatsApp</p>
+                        <img src="${qrData.qrcode}" alt="QR Code" class="mx-auto border rounded-lg p-2" style="max-width: 200px;">
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        // View user details
+        function viewUser(phone) {
+            alert(`Viewing user: ${phone}\n\nThis would show detailed user information.`);
+        }
+
+        // Delete user
+        function deleteUser(phone) {
+            if (confirm(`Are you sure you want to delete user ${phone}?`)) {
+                alert(`User ${phone} would be deleted.`);
+                // Implement actual deletion API call
+            }
+        }
+
+        // Export users
+        function exportUsers() {
+            alert('Exporting users to CSV...');
+            // Implement CSV export
+        }
+
+        // Generate new QR code
+        function generateNewQR() {
+            alert('Generating new QR code...');
+            // Implement QR regeneration
+        }
+
+        // Logout WhatsApp
+        function logoutWhatsApp() {
+            if (confirm('Are you sure you want to logout WhatsApp? This will require scanning QR code again.')) {
+                alert('WhatsApp would be logged out.');
+                // Implement logout API call
+            }
+        }
+
+        // Save settings
+        function saveSettings() {
+            const maxFileSize = document.getElementById('maxFileSize').value;
+            const maxDownloads = document.getElementById('maxDownloads').value;
+            const enableYouTube = document.getElementById('enableYouTube').checked;
+            const enableInstagram = document.getElementById('enableInstagram').checked;
+            
+            alert(`Settings saved!\n\nMax File Size: ${maxFileSize}MB\nMax Downloads: ${maxDownloads}/day\nYouTube: ${enableYouTube ? 'Enabled' : 'Disabled'}\nInstagram: ${enableInstagram ? 'Enabled' : 'Disabled'}`);
+            
+            // Implement save API call
+        }
+
+        // Refresh all data
+        function refreshAll() {
+            loadSectionData(currentSection);
+            
+            // Show refresh animation
+            const refreshBtn = event?.target || document.querySelector('button[onclick="refreshAll()"]');
+            if (refreshBtn) {
+                const originalHTML = refreshBtn.innerHTML;
+                refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Refreshing';
+                refreshBtn.disabled = true;
+                
+                setTimeout(() => {
+                    refreshBtn.innerHTML = originalHTML;
+                    refreshBtn.disabled = false;
+                }, 1000);
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            showSection('dashboard');
+            
+            // Auto-refresh dashboard every 30 seconds
+            setInterval(() => {
+                if (currentSection === 'dashboard') {
+                    loadDashboard();
+                }
+            }, 30000);
+        });
+    </script>
+</body>
+</html>
